@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Source S3 Bucket for deployment
+
+Resources:
+  SourceBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+Outputs:
+  SourceBucketARN:
+    Value: !GetAtt SourceBucket.Arn
+    Export:
+      Name: SourceArn
+  SourceBucketName:
+    Value: !GetAtt SourceBucket.Name
+    Export: 
+      Name: SourceBucketName

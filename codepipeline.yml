@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Source S3 Bucket for deployment
+
+Resources:
+  CodePipelineRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: codepipeline.amazonaws.com
+              Action: 'sts:AssumeRole'
+        Policies:
+          - PolicyName: CodePipelinePolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - 's3:GetObject'
+                    - 's3:PutObject'
+                  Resource:
+                    - !ImportValue SourceArn
+                    - !ImportValue DestinationArn
+
+  CodePipeline:
+      Type: 'AWS::CodePipeline::Pipeline'
+      Properties:
+        ArtifactStore:
+          Location: !ImportValue SourceBucketName
+          Type: S3
+        Name: StaticWebsiteDeploymentPipeline
+        RoleArn: !GetAtt CodePipelineRole.Arn
+        Stages:
+          - Name: Source
+            Actions:
+              - Name: SourceAction
+                ActionTypeId:
+                  Category: Source
+                  Owner: AWS
+                  Version: 1
+                  Provider: S3
+                Configuration:
+                  S3Bucket: !Ref SourceBucket
+                  S3ObjectKey: index.html
+                OutputArtifacts:
+                  - Name: SourceArtifact
+
+          - Name: Deploy
+            Actions:
+              - Name: DeployAction
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Version: 1
+                  Provider: S3
+                InputArtifacts:
+                  - Name: SourceArtifact
+                Configuration:
+                  BucketName: !Ref DestinationBucket
+                  Extract: 'INDEX.html'
+                RunOrder: 1
+

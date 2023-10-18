@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  Username:
+    Description: username for github
+    Default: "jayshreea0402"
+    Type: String
+  Repo:
+    Description: bcdj
+    Default: html-cicd2
+    Type: String
+
+Resources:
+  SourceBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+    #   AccessControl: Private
+
+  DestinationBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      #AccessControl: PublicRead 
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerPreferred
+      
+    # Properties:
+    #   AccessControl: PublicRead
+    #   WebsiteConfiguration:
+    #     IndexDocument: index.html
+    #     ErrorDocument: error.html
+    #   OwnershipControls:
+    #     Rules:
+    #     - ObjectOwnership: BucketOwnerPreferred         
+
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "CodePipelineRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "codepipeline.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: "code-pipeline-access"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: "*"
+  
+  FormationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "cloudFormationRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "cloudformation.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: CloudFormation-Role
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: "*"
+
+  CodePipeline:
+    Type: 'AWS::CodePipeline::Pipeline'
+    Properties:
+      ArtifactStore:
+        Location: !Ref SourceBucket
+        Type: S3
+      Name: StaticWebsiteDeploymentPipeline
+      RoleArn: !GetAtt PipelineRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GithubRepo
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: "1"
+                Provider: GitHub
+              Configuration:
+                Owner: !Ref Username
+                Repo: html-cicd2
+                PollForSourceChanges: "false"
+                Branch: main
+                OAuthToken : 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
+                #Token" : "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"
+              OutputArtifacts:
+                - Name: Sourcezip
+              RunOrder: 1
+         
+        # Actions: 
+        #     - Name: GithubRepo
+        #       ActionTypeId: 
+        #         Category: Source 
+        #         Owner: ThirdParty
+        #         Version: 1 
+        #         Provider: GitHub 
+        #       Configuration:
+        #         "Owner": !Ref Username,
+        #         "Repo": !Ref Password,
+        #         "PollForSourceChanges": "false"
+        #         "Branch": "main"
+        #       OutputArtifacts:
+        #         - Name: FrontendSourceOutput 
+        #           RunOrder: 1
+        #           S3Bucket: !Ref ArtifactStoreS3Bucket              #try
+        #           S3ObjectKey: "source.zip"
+
+        - Name: Deploy
+          Actions:
+            - Name: DeployAction
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: "1"
+                Provider: S3
+              InputArtifacts:
+                - Name: Sourcezip
+              Configuration:
+                BucketName: !Ref DestinationBucket
+                Extract: 'index.html'
+              RunOrder: 1
+
+

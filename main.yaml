@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+#Strating here log group creation 
+Resources:
+  SourceBucketStack1:    
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://code-pmg.s3.ap-south-1.amazonaws.com/source.yml
+  DestinationBuckertStack2:    
+    Type: AWS::CloudFormation::Stack
+    DependsOn: SourceBucketStack1
+    Properties:
+      TemplateURL: https://code-pmg.s3.ap-south-1.amazonaws.com/destination.yml
+  PipelineStack3:    
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DestinationBuckertStack2
+    Properties:
+      TemplateURL: https://code-pmg.s3.ap-south-1.amazonaws.com/codepipeline.yml
+  # CloudwatchStack4:   
+  #   Type: AWS::CloudFormation::Stack
+  #   DependsOn: LambdaStack
+  #   Properties:
+  #     TemplateURL: https://cloudformation-log-collection.s3.ap-south-1.amazonaws.com/Cloudwatch-trail.yaml
+  
