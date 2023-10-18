@@ -5,12 +5,12 @@ Parameters:
     Default: "jayshreea0402"
     Type: String
   Repo:
-    Description: bcdj
-    Default: html-cicd2
+    Description: repo name
+    Default: testing-s3
     Type: String
 
 Resources:
-  SourceBucket02:
+  SourceBucket44:
     Type: 'AWS::S3::Bucket'
     Properties:
       PublicAccessBlockConfiguration:
@@ -20,7 +20,7 @@ Resources:
         RestrictPublicBuckets: false
     #   AccessControl: Private
 
-  DestinationBucket02:
+  DestinationBucket44:
     Type: 'AWS::S3::Bucket'
     Properties:
       VersioningConfiguration:
@@ -44,10 +44,10 @@ Resources:
     #     Rules:
     #     - ObjectOwnership: BucketOwnerPreferred         
 
-  PipelineRole02:
+  PipelineRole44:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: "CodePipelineRole02"
+      RoleName: "Codepipelinerole44444"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -67,10 +67,10 @@ Resources:
                 Action: "*"
                 Resource: "*"
   
-  FormationRole02:
+  FormationRole44:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: "cloudFormationRole02"
+      RoleName: "cloudFormationRole44444"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -90,14 +90,14 @@ Resources:
                 Action: "*"
                 Resource: "*"
 
-  CodePipeline02:
+  CodePipeline44:
     Type: 'AWS::CodePipeline::Pipeline'
     Properties:
       ArtifactStore:
-        Location: !Ref SourceBucket02
+        Location: !Ref SourceBucket44
         Type: S3
-      Name: StaticWebsiteDeploymentPipeline02
-      RoleArn: !GetAtt PipelineRole02.Arn
+      Name: StaticWebsite
+      RoleArn: !GetAtt PipelineRole44.Arn
       Stages:
         - Name: Source
           Actions:
@@ -109,10 +109,10 @@ Resources:
                 Provider: GitHub
               Configuration:
                 Owner: !Ref Username
-                Repo: html-cicd2
+                Repo: testing-s3
                 PollForSourceChanges: "false"
                 Branch: main
-                OAuthToken : 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
+                OAuthToken : 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
                 #Token" : "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"
               OutputArtifacts:
                 - Name: Sourcezip
@@ -147,7 +147,7 @@ Resources:
               InputArtifacts:
                 - Name: Sourcezip
               Configuration:
-                BucketName: !Ref DestinationBucket02
+                BucketName: !Ref DestinationBucket44
                 Extract: true #'index.html'
               RunOrder: 1
 
